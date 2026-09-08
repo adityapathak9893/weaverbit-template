@@ -4,8 +4,9 @@
 # Runs the cheap, fast gates — typecheck + lint — and feeds any failure
 # back to Claude so it fixes immediately instead of accumulating errors.
 #
-# PostToolUse cannot undo the edit, but a non-zero exit with stderr text
-# is surfaced to Claude as feedback. We keep this FAST (typecheck+lint only);
+# PostToolUse cannot undo the edit, but an exit of 2 with stderr text is surfaced to
+# Claude as feedback. ONLY exit 2: every other non-zero status is non-blocking and is
+# swallowed without reaching the agent. We keep this FAST (typecheck+lint only);
 # the full test/e2e/build suite runs at the Stop gate, not on every keystroke.
 
 set -uo pipefail
@@ -15,6 +16,8 @@ set -uo pipefail
 # "unbound variable" and exit 1 — a NON-blocking code, so the gate disappears silently
 # and the agent is never told. A hook that quietly does nothing is worse than no hook.
 # BASH_SOURCE also survives git-bash on Windows, where the env var was the failure.
+# settings.json invokes this as `bash "${CLAUDE_PROJECT_DIR:-.}/..."` so an unset var
+# falls back to the cwd and this line still gets the chance to run.
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 cd "$PROJECT_DIR" || {
@@ -31,11 +34,12 @@ fi
 FAILED=0
 OUT=""
 
-# Is a script defined? `npm pkg get` prints the value, or `{}` when the key is missing.
+# Is a script defined? Reads package.json directly.
 # Why not `npm run | grep -q`: grep exits on first match and closes the pipe, so npm dies
 # on EPIPE and prints "npm error ..." on every single check — noise on a passing run.
+# Why not `npm pkg get`: correct, but spawns npm twice per edit for a value we can read.
 has_script () {
-  [ "$(npm pkg get "scripts.$1" 2>/dev/null)" != "{}" ]
+  [ -n "$(node -p "require(process.cwd()+'/package.json').scripts?.['$1'] ?? ''" 2>/dev/null)" ]
 }
 
 if has_script typecheck; then
