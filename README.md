@@ -13,7 +13,7 @@
 - **`.claude/`** — the safety checks: hooks (auto typecheck/lint after edits, full test gate before finishing), the code-reviewer, and the slash commands.
 - **`.github/workflows/`** — the second safety net that re-runs the checks on GitHub.
 - **`CODE_STANDARDS.md`** — the "boring, readable, handcrafted-quality" code rules. Inherited as-is; not filled in per product (note any product-specific addition at the bottom of the file).
-- **`package.json` + the tooling spine** — TypeScript, ESLint, Prettier, Vitest and Playwright already wired, so the five gates (`typecheck`, `lint`, `test`, `e2e`, `build`) run from the first commit. Without this the hooks and CI pass while checking nothing.
+- **`package.json` + the tooling spine** — TypeScript, ESLint, Prettier, Vitest and Playwright already wired, so the five gates (`typecheck`, `lint`, `test`, `e2e`, `build`) run from the first commit. Without this the hooks and CI pass while checking nothing. `tests/gates.test.ts` guards that: it goes red if `src/` has code while `dev`/`build` are still placeholders or the runners are still told to pass with no specs.
 - The reference docs that govern everything: `PROCESS.md` (the rulebook) and `STRUCTURE.md` (the folder map) — canonical here, copied into each product at birth. `BRAND.md` is a **stub**: the brand is canonical in `weaverbit-core` and is *installed*, never copied.
 
 ## How to start a new product (plain steps)
@@ -53,12 +53,15 @@ starts adding specs; the other three gates are real from the first commit.
 
 ## First install on a new machine
 
-Two things that cost time the first time (both hit while building `weaverbit-core`):
+Three things that cost time the first time (the first two were hit while building
+`weaverbit-core`; the third is what that install does on npm 11):
 
 1. **Install scripts need approval on npm 11+.** npm no longer runs dependency install scripts
-   silently, and `esbuild`/`fsevents` need theirs. This repo pre-approves exactly those two via
-   the `allowScripts` field in `package.json`, so a plain `npm install` is quiet. If you add a
-   dependency that needs one, npm prints a warning and you approve it deliberately:
+   silently, and `esbuild`/`fsevents` need theirs. This repo pre-approves them via the
+   `allowScripts` field in `package.json`, so a plain `npm install` is quiet. (On npm 10 —
+   which ships with Node 20 and 22 — the field is simply inert; scripts run as they always
+   did.) If you add a dependency that needs one, npm prints a warning and you approve it
+   deliberately:
 
    ```bash
    npm approve-scripts --allow-scripts-pending   # review what's pending
@@ -74,6 +77,20 @@ Two things that cost time the first time (both hit while building `weaverbit-cor
 
    CI does this itself (`.github/workflows/ci.yml`). Both Playwright projects — desktop and the
    mobile viewport — are Chromium, so that is the only browser needed.
+
+3. **`weaverbit-core` is built by a `prepare` script, which npm 11 also gates.** The package
+   ships only `dist/`, and `dist/` is produced on install. npm treats `prepare` as an install
+   script for git dependencies, so on npm 11 it needs approval like any other — and the
+   approval key must be the **git spec**, not the bare package name (npm matches git
+   dependencies by spec; a bare name only ever matches a registry package). That key is
+   already in `allowScripts` here. If you install the brand into a repo that lacks it, or from
+   a different owner or fork, expect an unbuilt package — the symptom is
+   `Cannot find module 'weaverbit-core'` or a missing `dist/`:
+
+   ```bash
+   npm approve-scripts --allow-scripts-pending    # shows it as pending
+   ls node_modules/weaverbit-core/dist            # must exist after install
+   ```
 
 ## The one rule to remember
 Plan first, approve the plan, then build in small reviewed pieces. The forms and the checks exist so that what gets built is what you would have built — and so anything else gets caught before it ships.

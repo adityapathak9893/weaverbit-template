@@ -4,6 +4,7 @@
   "private": true,
   "description": "Starter repo every Weaverbit product is born from: the process docs, the Claude Code harness, and the verified tooling spine (the five gates).",
   "license": "UNLICENSED",
+  "repository": "github:adityapathak9893/weaverbit-template",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -33,6 +34,7 @@
   },
   "allowScripts": {
     "esbuild": true,
-    "fsevents": true
+    "fsevents": true,
+    "github:adityapathak9893/weaverbit-core": true
   }
 }
