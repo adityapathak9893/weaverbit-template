@@ -22,19 +22,42 @@
 # manifest will not parse, exit 2 rather than concluding "no gates are defined" — suppressing
 # those two errors is what silently skipped every gate while reporting success. An *absent*
 # package.json is a different case and exits 0: early scaffolding is not an error.
-# tests/harness.test.ts asserts the guard is present and that this script only ever exits 0 or 2.
+# tests/harness.test.ts drives this script through those cases for real, and checks that no
+# literal `exit` here uses a status other than 0 or 2. It cannot see a status bash itself
+# produces — an unbound variable (1) or a lost exec bit (126) — which is why those two are
+# guarded by construction above and by the exec-bit assertion in that same file.
 
+# The block below is duplicated verbatim in the sibling hook rather than sourced from a shared
+# lib. Deliberate: a `source` that cannot find its lib is itself a silent-skip path, and these
+# two files are the last thing that should depend on another file being present to work.
 set -uo pipefail
 
 INPUT=$(cat)
 
-# Prevent infinite loop: if this stop was itself triggered by a prior block, allow it.
+# Prevent an infinite loop: if this stop was itself triggered by a prior block, allow it.
 #
-# Why not jq: it is not guaranteed to be installed, and the old code exited 0 when it
-# was missing — Stop treats exit 0 as "all good", so the whole Definition-of-Done gate
-# vanished with only a stderr line nobody reads. node is guaranteed here (this is a
-# Node repo, and npm runs the gates), so the parse can never be the reason we skip.
-ACTIVE=$(printf '%s' "$INPUT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{let v=false;try{v=JSON.parse(s).stop_hook_active===true}catch{}process.stdout.write(String(v))})" 2>/dev/null)
+# This guard MUST survive a missing node. The fail-closed check further down exits 2 when
+# node is absent, and a Stop hook that exits 2 re-triggers itself — so if the guard needed
+# node to decide, "node is missing" would become an unbreakable loop rather than a gate.
+# Hence two tiers: node parses the JSON exactly when it is available, and a raw string
+# match is the fallback for the one case where it is not.
+#
+# Why not jq for either tier: it is not guaranteed to be installed, and the old code
+# exited 0 when it was missing — Stop treats exit 0 as "all good", so the whole
+# Definition-of-Done gate vanished with only a stderr line nobody reads.
+ACTIVE=""
+if command -v node >/dev/null 2>&1; then
+  ACTIVE=$(printf '%s' "$INPUT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{let v=false;try{v=JSON.parse(s).stop_hook_active===true}catch{}process.stdout.write(String(v))})" 2>/dev/null)
+fi
+
+# Empty means node is gone, or it failed to parse. Strip whitespace so the match survives
+# the spacing JSON permits ("stop_hook_active" : true) and compare against the literal.
+if [ -z "$ACTIVE" ]; then
+  case "$(printf '%s' "$INPUT" | tr -d ' \t\n\r')" in
+    *'"stop_hook_active":true'*) ACTIVE="true" ;;
+  esac
+fi
+
 if [ "$ACTIVE" = "true" ]; then
   exit 0
 fi
@@ -46,6 +69,13 @@ fi
 # nothing is worse than no hook. BASH_SOURCE also covers the git-bash-on-Windows case
 # where the env var was the thing that went missing.
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+# `cd ""` succeeds and stays put, so an empty value would silently gate whatever the cwd
+# happens to be. Check before trusting it.
+if [ -z "$PROJECT_DIR" ]; then
+  echo "stop-gate: could not resolve the project root; gates NOT run." >&2
+  exit 2
+fi
 
 cd "$PROJECT_DIR" || {
   echo "stop-gate: cannot cd to project root ($PROJECT_DIR); gates NOT run." >&2
@@ -68,14 +98,19 @@ if ! command -v node >/dev/null 2>&1; then
   exit 2
 fi
 
-if ! SCRIPTS=$(node -e 'const s = require(process.cwd() + "/package.json").scripts || {}; process.stdout.write(Object.keys(s).join("\n"))' 2>&1); then
-  echo "stop-gate: cannot read package.json scripts — gates NOT run:" >&2
-  echo "$SCRIPTS" >&2
+# stderr is deliberately NOT captured into $SCRIPTS: it flows straight to this hook's own
+# stderr, which is what gets fed back to Claude. Merging it with 2>&1 would append any
+# at-exit node warning onto the last script name, so that gate would stop being found —
+# the exact silent-skip this guard exists to remove.
+if ! SCRIPTS=$(node -e 'const s = require(process.cwd() + "/package.json").scripts || {}; process.stdout.write(Object.keys(s).join("\n"))'); then
+  echo "stop-gate: cannot read package.json scripts (node error above) — gates NOT run." >&2
   exit 2
 fi
 
-# Exact line match against the captured list, using only builtins: no pipe (a `grep -q`
-# would close the pipe early and trip pipefail) and no extra node process per gate.
+# Exact line match against the captured list, using only builtins. Why not `npm pkg get`:
+# correct, but it spawns npm once per gate for a value already read here. Why not a pipe to
+# grep: it forks a process per lookup for a string this small, and `grep -q` closing the
+# pipe early is a pipefail hazard not worth inviting into a script that must not fail open.
 has_script () {
   case $'\n'"$SCRIPTS"$'\n' in
     *$'\n'"$1"$'\n'*) return 0 ;;
