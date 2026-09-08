@@ -54,13 +54,18 @@ code is pushed and a PR is opened. Do not write deploy scripts or touch infra.
 Use these exact scripts. If a script is missing, add it to `package.json` rather than running ad-hoc commands.
 
 ```
-npm run dev          # local dev server
-npm run typecheck    # tsc --noEmit                — MUST be clean
+npm run dev          # <the product dev server>     — STUB until filled in
+npm run typecheck    # tsc --noEmit                 — MUST be clean
 npm run lint         # eslint --max-warnings 0      — MUST be clean
 npm run test         # vitest run                   — all green
 npm run e2e          # playwright test (headless)   — all green
-npm run build        # next build                   — MUST succeed
+npm run build        # <the product build>          — STUB until filled in, MUST succeed
 ```
+
+The three middle gates are real from the first commit. `dev` and `build` ship as loud
+placeholders in `package.json` because a template has no app; replacing them is part of the
+first product task, and `tests/gates.test.ts` fails the moment `src/` has code and they haven't
+been replaced.
 
 ---
 
@@ -85,7 +90,7 @@ Verification quality = loop quality. Thin tests = confidently shipping broken wo
 - After **every** code edit: run `typecheck` + `lint`, fix immediately before moving on. (Wired as a `PostToolUse` hook — see §9.)
 - For business logic: write `vitest` tests first or alongside; assert behavior, not implementation.
 - For UI: write/extend **Playwright** specs. This is your "manual testing" — drive the real browser, assert visible outcomes, capture screenshots, read failures, fix. Cover: happy path, empty state, error state, mobile viewport, keyboard focus.
-- For the feedback endpoint: integration test that a valid POST writes a row and an invalid/abusive POST is rejected and rate-limited.
+- For every public write endpoint declared in §1: integration test that a valid POST is accepted and persisted, and that an invalid or abusive POST is rejected and rate-limited. Products with no write endpoints skip this.
 - Never assume something works because it "should." Run it. Read the output. Act on it.
 
 ---
@@ -96,7 +101,7 @@ Verification quality = loop quality. Thin tests = confidently shipping broken wo
 - Commit in logical units, not one giant dump.
 - When done: push branch, open PR with `gh pr create`. PR body must summarize: what changed, why, how it was verified (which gates passed), and any follow-ups.
 - CI (`.github/workflows`) re-runs the same gates server-side. The local loop and remote loop assert the same things.
-- **Do not merge.** Aditya reviews and merges the PR. (Auto-deploy triggers on merge — already handled.)
+- **Do not merge.** Aditya reviews and merges the PR. (Where §1 declares deploy targets, merge triggers them — already handled, and still not your concern.)
 
 ---
 
@@ -128,9 +133,9 @@ Operate **long-leash autonomous**: loop through many steps without stopping, but
 ## 9. Hooks & automation (setup reference) [HARNESS]
 Configure in `.claude/settings.json` (verify exact schema against current Claude Code docs before relying on it):
 - **`PostToolUse`** on file edits → run `typecheck` + `lint`, feed errors back for immediate fix.
-- **`Stop`** → block ending the session until the Definition of Done (§3) gates are green.
+- **`Stop`** → run the Definition of Done (§3) gates and block the stop if any is red. The `stop_hook_active` guard means it blocks the *first* stop of a chain, not every one — without it, a hook that always blocks is an infinite loop.
 - **Subagent** `code-reviewer` in `.claude/agents/` → fresh-context diff critique (§6).
-- **Slash commands** in `.claude/commands/`: `/review` (critique diff), `/new-post` (scaffold a blog MDX file with frontmatter).
+- **Slash commands** in `.claude/commands/`: `/review` (critique diff), and — content-site products only — `/new-post` (scaffold a blog MDX file with frontmatter). A product with no blog deletes `new-post.md`, as `weaverbit-core` did.
 
 ---
 
@@ -145,6 +150,16 @@ This file is the template for every Weaverbit product. To reuse:
 
 ## 11. Folder documentation (READMEs) [HARNESS]
 Keep the repo self-documenting, but only where it earns its keep. Stale docs are worse than none.
+
+> **⚠️ NEEDS APPROVAL — this section currently contradicts the repo.** The control-layer
+> READMEs under `.claude/**` and `.github/workflows/` were deleted on Aditya's instruction
+> ("a folder that explains itself gets no README"), but the example below still names those
+> exact folders as ones that earn a README. Left unedited on purpose: the rule is Aditya's to
+> write, not the agent's. Until it is resolved, the `code-reviewer` may flag their absence, and
+> a product copying this template may re-create them. Proposed replacement for the example:
+> "a folder with a non-obvious naming or data convention, or anything a new reader would
+> otherwise have to reverse-engineer — but not the control-layer folders, whose contents are
+> named for what they do."
 
 **When to add a `README.md` to a folder:**
 - Add one when the folder's **purpose, conventions, or gotchas are not obvious from its name and contents** — e.g. control-layer folders (`.claude/**`, `.github/workflows/`), a folder with a non-obvious naming or data convention, or anything a new reader would otherwise have to reverse-engineer.

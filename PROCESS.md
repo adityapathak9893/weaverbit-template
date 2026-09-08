@@ -63,7 +63,7 @@ Every product, before a single line of application code, produces these document
 | 2 | `docs/WORKFLOW_DATAFLOW.md` | What are the user flows? How does data move through the system? What are the states and transitions? | **Aditya, mandatory** |
 | 3 | `docs/SYSTEM_DESIGN.md` | Architecture, stack, rendering strategy, repo & folder structure, data stores, security/compliance, scalability. | **Aditya, mandatory** |
 | 4 | `docs/DESIGN_GUIDE.md` | Product-specific design that **extends** `weaverbit-core`. Layouts, components, the one signature element, motion, a11y floor. | **Aditya, mandatory** |
-| 5 | `CODE_STANDARDS.md` (repo root — inherited, not a per-product form) | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
+| 5 | `CODE_STANDARDS.md` | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
 
 **The gate is strict (Aditya's standing decision):** every document above is reviewed and approved by Aditya before code. No exceptions for the first products. This may loosen only by an explicit future revision to this document — not by drift.
 
