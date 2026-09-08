@@ -1,5 +1,7 @@
 # PROCESS.md — The Weaverbit Product Development Process
 
+> **Canonical copy lives in `weaverbit-template`; products copy at birth.**
+>
 > **This is the bible.** It governs how every product at Weaverbit is planned, built, reviewed, and shipped. It is authored and owned by Aditya. Agents do not modify this document. Every product repo references it; no product deviates from it without Aditya changing it here first.
 >
 > **Version:** 0.1 (first pass — will be revised as real products are built through it)
@@ -57,11 +59,11 @@ Every product, before a single line of application code, produces these document
 
 | # | Document | Answers | Approval |
 |---|---|---|---|
-| 1 | `PRODUCT_SPEC.md` | What is it? Who is it for? Why does it exist? What does success look like (concrete, measurable)? What is explicitly out of scope? | **Aditya, mandatory** |
-| 2 | `WORKFLOW_DATAFLOW.md` | What are the user flows? How does data move through the system? What are the states and transitions? | **Aditya, mandatory** |
-| 3 | `SYSTEM_DESIGN.md` | Architecture, stack, rendering strategy, repo & folder structure, data stores, security/compliance, scalability. | **Aditya, mandatory** |
-| 4 | `DESIGN_GUIDE.md` | Product-specific design that **extends** `weaverbit-core`. Layouts, components, the one signature element, motion, a11y floor. | **Aditya, mandatory** |
-| 5 | `CODE_STANDARDS.md` | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
+| 1 | `docs/PRODUCT_SPEC.md` | What is it? Who is it for? Why does it exist? What does success look like (concrete, measurable)? What is explicitly out of scope? | **Aditya, mandatory** |
+| 2 | `docs/WORKFLOW_DATAFLOW.md` | What are the user flows? How does data move through the system? What are the states and transitions? | **Aditya, mandatory** |
+| 3 | `docs/SYSTEM_DESIGN.md` | Architecture, stack, rendering strategy, repo & folder structure, data stores, security/compliance, scalability. | **Aditya, mandatory** |
+| 4 | `docs/DESIGN_GUIDE.md` | Product-specific design that **extends** `weaverbit-core`. Layouts, components, the one signature element, motion, a11y floor. | **Aditya, mandatory** |
+| 5 | `CODE_STANDARDS.md` (repo root — inherited, not a per-product form) | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
 
 **The gate is strict (Aditya's standing decision):** every document above is reviewed and approved by Aditya before code. No exceptions for the first products. This may loosen only by an explicit future revision to this document — not by drift.
 
@@ -95,7 +97,7 @@ This section defines the bar the `code-reviewer` and Aditya enforce. "Handcrafte
 - **Commented for *why*, never *what*.** File headers, exported-API docs, and the reasoning behind non-obvious choices — with pointers to the planning docs. No comments that restate code. Stale comments are a MAJOR defect. (See harness commenting standard.)
 - **Self-documenting structure.** Folders that need explanation get a README; obvious ones don't. Documented folders' READMEs are updated in the same PR as the change.
 - **Tested where it matters.** New logic carries tests that assert behavior. A weakened or skipped test to make a gate pass is a BLOCKER.
-- **Secure & compliant by default.** Inputs validated server-side, secrets in env only, GDPR posture respected (cookieless analytics, minimal data capture). (See per-product `SYSTEM_DESIGN.md`.)
+- **Secure & compliant by default.** Inputs validated server-side, secrets in env only, GDPR posture respected (cookieless analytics, minimal data capture). (See per-product `docs/SYSTEM_DESIGN.md`.)
 
 If Aditya reading a diff would think "I wouldn't have written it this way," the standard is not met — regardless of whether the gates are green. Green gates are necessary, not sufficient. Aditya's judgment is the final gate.
 
