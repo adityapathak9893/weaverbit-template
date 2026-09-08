@@ -25,17 +25,34 @@ if [ "$ACTIVE" = "true" ]; then
   exit 0
 fi
 
-cd "$CLAUDE_PROJECT_DIR" || exit 0
+# Resolve the repo root from this script's own location rather than trusting the
+# environment. Why: with `set -u`, an unset CLAUDE_PROJECT_DIR aborts the script with
+# "unbound variable" and exit 1 — a NON-blocking code, so the gate disappears silently
+# and the agent is never told. A hook that quietly does nothing is worse than no hook.
+# BASH_SOURCE also survives git-bash on Windows, where the env var was the failure.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+cd "$PROJECT_DIR" || {
+  echo "stop-gate: cannot cd to project root ($PROJECT_DIR); gates NOT run." >&2
+  exit 2
+}
 
 # Nothing to gate before the project exists.
 if [ ! -f package.json ]; then
   exit 0
 fi
 
+# Is a script defined? `npm pkg get` prints the value, or `{}` when the key is missing.
+# Why not `npm run | grep -q`: grep exits on first match and closes the pipe, so npm dies
+# on EPIPE and prints "npm error ..." for every gate — noise on a fully passing run.
+has_script () {
+  [ "$(npm pkg get "scripts.$1" 2>/dev/null)" != "{}" ]
+}
+
 run_gate () {
   local script="$1"
   # Skip gracefully if the script isn't defined yet.
-  if ! npm run | grep -qE "^[[:space:]]*${script}([[:space:]]|$)"; then
+  if ! has_script "$script"; then
     return 0
   fi
   if ! OUT=$(npm run "$script" 2>&1); then

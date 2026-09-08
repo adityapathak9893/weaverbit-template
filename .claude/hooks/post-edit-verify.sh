@@ -10,7 +10,17 @@
 
 set -uo pipefail
 
-cd "$CLAUDE_PROJECT_DIR" || exit 0
+# Resolve the repo root from this script's own location rather than trusting the
+# environment. Why: with `set -u`, an unset CLAUDE_PROJECT_DIR aborts the script with
+# "unbound variable" and exit 1 — a NON-blocking code, so the gate disappears silently
+# and the agent is never told. A hook that quietly does nothing is worse than no hook.
+# BASH_SOURCE also survives git-bash on Windows, where the env var was the failure.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+cd "$PROJECT_DIR" || {
+  echo "hook: cannot cd to project root ($PROJECT_DIR)" >&2
+  exit 2
+}
 
 # Only act in a real Node project (skip during early scaffolding when
 # package.json may not exist yet — don't block the agent bootstrapping).
@@ -21,16 +31,21 @@ fi
 FAILED=0
 OUT=""
 
-# Typecheck (only if the script exists)
-if npm run | grep -qE '^[[:space:]]*typecheck'; then
+# Is a script defined? `npm pkg get` prints the value, or `{}` when the key is missing.
+# Why not `npm run | grep -q`: grep exits on first match and closes the pipe, so npm dies
+# on EPIPE and prints "npm error ..." on every single check — noise on a passing run.
+has_script () {
+  [ "$(npm pkg get "scripts.$1" 2>/dev/null)" != "{}" ]
+}
+
+if has_script typecheck; then
   if ! TC=$(npm run typecheck 2>&1); then
     FAILED=1
     OUT+=$'\n--- typecheck failed ---\n'"$TC"
   fi
 fi
 
-# Lint (only if the script exists)
-if npm run | grep -qE '^[[:space:]]*lint'; then
+if has_script lint; then
   if ! LN=$(npm run lint 2>&1); then
     FAILED=1
     OUT+=$'\n--- lint failed ---\n'"$LN"
