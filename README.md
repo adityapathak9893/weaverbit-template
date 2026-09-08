@@ -10,7 +10,7 @@
   - `SYSTEM_DESIGN.md` — the technical plan (form)
   - `DESIGN_GUIDE.md` — how this product looks, extending the shared brand (form)
 - **`CLAUDE.md`** — the agent's operating manual (the build loop, the rules). Copied in, ready.
-- **`.claude/`** — the safety checks: hooks (auto typecheck/lint after edits, full test gate before finishing), the code-reviewer, and the slash commands.
+- **`.claude/`** — the safety checks: hooks (auto typecheck/lint after edits, full test gate before finishing), the code-reviewer, and the slash commands. The hooks **fail closed**: if the toolchain is broken (no Node, unreadable `package.json`) they stop the agent and say why, rather than skipping every gate and reporting success. `tests/harness.test.ts` guards that, plus the two ways a hook can vanish without a word — a lost exec bit, and wiring that points at a missing script.
 - **`.github/workflows/`** — the second safety net that re-runs the checks on GitHub.
 - **`CODE_STANDARDS.md`** — the "boring, readable, handcrafted-quality" code rules. Inherited as-is; not filled in per product (note any product-specific addition at the bottom of the file).
 - **`package.json` + the tooling spine** — TypeScript, ESLint, Prettier, Vitest and Playwright already wired, so the five gates (`typecheck`, `lint`, `test`, `e2e`, `build`) run from the first commit. Without this the hooks and CI pass while checking nothing. `tests/gates.test.ts` guards that: it goes red if `src/` has code while `dev`/`build` are still placeholders or the runners are still told to pass with no specs.
