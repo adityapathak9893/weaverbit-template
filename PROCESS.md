@@ -4,7 +4,7 @@
 >
 > **This is the bible.** It governs how every product at Weaverbit is planned, built, reviewed, and shipped. It is authored and owned by Aditya. Agents do not modify this document. Every product repo references it; no product deviates from it without Aditya changing it here first.
 >
-> **Version:** 0.1 (first pass — will be revised as real products are built through it)
+> **Version:** 0.2
 > **Status:** Living document. Changes are deliberate, dated, and made by Aditya.
 
 ---
@@ -63,7 +63,7 @@ Every product, before a single line of application code, produces these document
 | 2 | `docs/WORKFLOW_DATAFLOW.md` | What are the user flows? How does data move through the system? What are the states and transitions? | **Aditya, mandatory** |
 | 3 | `docs/SYSTEM_DESIGN.md` | Architecture, stack, rendering strategy, repo & folder structure, data stores, security/compliance, scalability. | **Aditya, mandatory** |
 | 4 | `docs/DESIGN_GUIDE.md` | Product-specific design that **extends** `weaverbit-core`. Layouts, components, the one signature element, motion, a11y floor. | **Aditya, mandatory** |
-| 5 | `CODE_STANDARDS.md` | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
+| 5 | `CODE_STANDARDS.md` (repo root, with the governing docs — `docs/` holds the four forms above) | Language/framework conventions, the "boring code" rules, commenting standard, naming, testing expectations. (Usually inherited near-verbatim from the template; product-specific additions noted.) | Review (often inherited) |
 
 **The gate is strict (Aditya's standing decision):** every document above is reviewed and approved by Aditya before code. No exceptions for the first products. This may loosen only by an explicit future revision to this document — not by drift.
 
@@ -132,4 +132,5 @@ If Aditya reading a diff would think "I wouldn't have written it this way," the 
 ---
 
 ## Changelog
+- **0.2 — 2026-09-09** — Drift fixes after the first product (`weaverbit-core` v0.1.0) was built through this process. Planning-doc paths corrected to `docs/` (§3), where they have always actually lived; `CODE_STANDARDS.md` placed at the repo root as a governing doc rather than a per-product form (§3); canonical-home header added. Applied by agent on Aditya's explicit instruction and ruling — see PR #1 in `weaverbit-template`.
 - **0.1 — <date>** — First pass. Architecture (separate repos + core), strict planning gate, build loop, quality standard. Authored before the weaverbit.com rebuild, which will be the first product built through this process and the first source of revisions.

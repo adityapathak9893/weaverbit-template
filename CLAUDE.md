@@ -56,7 +56,7 @@ Use these exact scripts. If a script is missing, add it to `package.json` rather
 ```
 npm run dev          # <the product dev server>     — STUB until filled in
 npm run typecheck    # tsc --noEmit                 — MUST be clean
-npm run lint         # eslint --max-warnings 0      — MUST be clean
+npm run lint         # eslint + prettier --check    — MUST be clean
 npm run test         # vitest run                   — all green
 npm run e2e          # playwright test (headless)   — all green
 npm run build        # <the product build>          — STUB until filled in, MUST succeed
@@ -72,7 +72,7 @@ been replaced.
 ## 3. Definition of done [HARNESS]
 A task is **not done** until ALL of these pass. This is a hard gate, not a checklist to skim:
 1. `npm run typecheck` — zero errors.
-2. `npm run lint` — zero errors, zero warnings.
+2. `npm run lint` — zero errors, zero warnings, and formatting clean (the gate runs `eslint` then `prettier --check`).
 3. `npm run test` — all unit/integration green; new logic has tests.
 4. `npm run e2e` — Playwright specs green for any UI you touched.
 5. `npm run build` — succeeds.
@@ -151,19 +151,9 @@ This file is the template for every Weaverbit product. To reuse:
 ## 11. Folder documentation (READMEs) [HARNESS]
 Keep the repo self-documenting, but only where it earns its keep. Stale docs are worse than none.
 
-> **⚠️ NEEDS APPROVAL — this section currently contradicts the repo.** The control-layer
-> READMEs under `.claude/**` and `.github/workflows/` were deleted on Aditya's instruction
-> ("a folder that explains itself gets no README"), but the example below still names those
-> exact folders as ones that earn a README. Left unedited on purpose: the rule is Aditya's to
-> write, not the agent's. Until it is resolved, the `code-reviewer` may flag their absence, and
-> a product copying this template may re-create them. Proposed replacement for the example:
-> "a folder with a non-obvious naming or data convention, or anything a new reader would
-> otherwise have to reverse-engineer — but not the control-layer folders, whose contents are
-> named for what they do."
-
 **When to add a `README.md` to a folder:**
-- Add one when the folder's **purpose, conventions, or gotchas are not obvious from its name and contents** — e.g. control-layer folders (`.claude/**`, `.github/workflows/`), a folder with a non-obvious naming or data convention, or anything a new reader would otherwise have to reverse-engineer.
-- **Do NOT** add one to self-explanatory folders (`components/`, `app/`, `lib/`, `tests/`) just for completeness. A README that only restates the folder name is noise. If such a folder later develops a real convention, add one then.
+- Add one when the folder's **purpose, conventions, or gotchas are not obvious from its name and contents** — a folder with a non-obvious naming or data convention, an unexpected dependency between files, or anything a new reader would otherwise have to reverse-engineer.
+- **Do NOT** add one to a folder that explains itself. That includes the ordinary source folders (`components/`, `app/`, `lib/`, `tests/`) **and the control-layer folders (`.claude/**`, `.github/workflows/`)** — hooks, agents, commands and CI workflows are named for what they do, and a README over them only restates the filenames and then rots. If such a folder later develops a real convention, add one then.
 
 **What a folder README contains (keep it short):**
 1. One line: what lives here and why.

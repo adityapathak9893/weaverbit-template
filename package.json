@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "echo 'weaverbit-template: no app yet \u2014 replace this script with the product dev server (e.g. next dev / vite).'",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "test": "vitest run --passWithNoTests",

@@ -1,23 +1,10 @@
 # CODE_STANDARDS.md — how Weaverbit code is written
 
-> ## ⚠️ NEEDS APPROVAL
->
-> **Drafted by the agent, not yet approved by Aditya.** `README.md` and `PROCESS.md` §3 both
-> require this document; it did not exist. Nothing below is invented: every rule is either
-> already enforced by the tooling `weaverbit-core` proved (its `tsconfig.json`,
-> `eslint.config.js`, `.prettierrc.json`, `tests/no-raw-hex.test.ts`) or already written down in
-> `CLAUDE.md` / `STRUCTURE.md` / `BRAND.md` and only restated here as the single place a reader
-> can find them. Three things still need your call, all flagged inline: **(A)** this file's
-> location (root, next to `PROCESS.md`/`STRUCTURE.md`, rather than `docs/` with the four
-> fill-in forms — it is inherited, not filled in per product; `PROCESS.md` §3 is deliberately
-> left saying only `CODE_STANDARDS.md`, so your ruling settles it), **(B)** §7, the only rule
-> here with no mechanical enforcement behind it, and **(C)** §4 — formatting is checked by
-> `npm run format` but that is not one of the five gates and not in CI, so it is unenforced.
->
-> Delete this block once approved.
-
 > **Canonical copy lives in `weaverbit-template`; products copy at birth.** Inherited as-is and
 > not filled in per product — a product-specific addition goes at the bottom, under §8.
+>
+> Lives at the repo root beside `PROCESS.md` and `STRUCTURE.md`, not in `docs/`: it is a
+> governing doc products inherit, and `docs/` holds the four fill-in forms only.
 
 ---
 
@@ -40,7 +27,8 @@ Enforced by `tsconfig.json`; the `typecheck` gate must be zero-error (`CLAUDE.md
 
 ## 3. Lint — nothing yellow lands
 
-Enforced by `eslint.config.js`, run as `eslint . --max-warnings 0`.
+Enforced by `eslint.config.js`, run as `eslint . --max-warnings 0` (the `lint` gate, which
+then also runs `prettier --check .` — see §4).
 
 - **A warning is an error.** There is no "we'll clean it up later" state.
 - Unused variables and arguments are removed. Only a deliberate placeholder may stay, prefixed
@@ -54,9 +42,9 @@ Enforced by `eslint.config.js`, run as `eslint . --max-warnings 0`.
 
 Configured in `.prettierrc.json`: single quotes, semicolons, 100-column width, trailing commas.
 
-**(C) NEEDS APPROVAL — this rule is currently unenforced.** `npm run format` exists but is not
-one of the five gates and does not run in CI, so nothing stops unformatted code landing. Either
-add `format` to `ci.yml` and the Definition of Done, or accept that it is convention only.
+**Enforced by the `lint` gate**, which runs `eslint` and then `prettier --check .`. Folding it
+into `lint` rather than adding a sixth gate means it runs everywhere the existing gate already
+does — the post-edit hook, the Stop gate, and CI — with nothing new to remember.
 
 - Formatting is never a review topic. Run `npm run format:write`; the tool decides.
 - **Markdown is exempt** (`.prettierignore`): the governing docs are hand-authored and
@@ -97,10 +85,10 @@ Enforced inside the `weaverbit-core` repo by its `tests/no-raw-hex.test.ts`, and
   gets a Playwright spec covering happy path, empty state, error state, mobile viewport, and
   keyboard focus (`CLAUDE.md` §4). **Weakening or skipping a test to pass a gate is a BLOCKER**
   (`CLAUDE.md` §7).
-- **(B) NEEDS APPROVAL — dependencies:** prefer the platform and the standard library; every new
-  package is justified in the PR body (`CLAUDE.md` §7). *There is no mechanical check for this —
-  it holds only because the reviewer enforces it. Confirm that's the bar you want, or say what
-  should replace it.*
+- **Dependencies:** prefer the platform and the standard library; every new package is justified
+  in the PR body (`CLAUDE.md` §7). There is no mechanical check for this one: enforcement is the
+  `code-reviewer` reading the PR body for that justification and flagging a new dependency that
+  arrives without one.
 
 ## 8. Product-specific additions
 

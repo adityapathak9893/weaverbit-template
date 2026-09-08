@@ -65,7 +65,7 @@ These exist in every Weaverbit repo, in these exact locations, regardless of app
 - **`types/` is for global types only.** A type used by one feature lives in that feature.
 - **Planning docs in `docs/`**, always findable in the same place. The governing docs copied from the template (`PROCESS.md`, `STRUCTURE.md`, `CODE_STANDARDS.md`, `BRAND.md`) and the harness (`CLAUDE.md`, `README.md`) sit at the root.
 - **`.env.example` only if the product actually has env vars.** A product with none does not ship an empty one; the moment the first variable is introduced, the file is added in the same PR.
-- **`package.json` always defines all five gate scripts** (`typecheck`, `lint`, `test`, `e2e`, `build` — `CLAUDE.md` §3). Without it the hooks and CI silently pass while checking nothing.
+- **`package.json` always defines all five gate scripts** (`typecheck`, `lint`, `test`, `e2e`, `build` — `CLAUDE.md` §3; `lint` covers formatting too). Without it the hooks and CI silently pass while checking nothing.
 - **Tests mirror the code** they cover; `tests/` for unit/integration, `e2e/` for Playwright.
 
 ---

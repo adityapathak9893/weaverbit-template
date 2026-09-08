@@ -40,7 +40,7 @@ Every task ends green on all five, locally and again in CI (`CLAUDE.md` §3):
 
 ```bash
 npm run typecheck    # tsc --noEmit          — zero errors
-npm run lint         # eslint --max-warnings 0 — zero warnings
+npm run lint         # eslint + prettier --check — zero warnings
 npm run test         # vitest run
 npm run e2e          # playwright test
 npm run build        # the product build
