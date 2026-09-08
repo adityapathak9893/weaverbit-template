@@ -3,6 +3,9 @@ description: Scaffold a new blog post as an MDX file with correct frontmatter.
 argument-hint: "<post title>"
 ---
 
+> Content-site products only. This command writes `content/blog/<slug>.mdx`; a product with
+> no blog deletes this file rather than repointing it (`weaverbit-core` did).
+
 Create a new blog post MDX file for the title: $ARGUMENTS
 
 Steps:
