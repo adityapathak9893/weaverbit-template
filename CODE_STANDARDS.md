@@ -7,10 +7,12 @@
 > already enforced by the tooling `weaverbit-core` proved (its `tsconfig.json`,
 > `eslint.config.js`, `.prettierrc.json`, `tests/no-raw-hex.test.ts`) or already written down in
 > `CLAUDE.md` / `STRUCTURE.md` / `BRAND.md` and only restated here as the single place a reader
-> can find them. Two things still need your call, both flagged inline: **(A)** this file's
+> can find them. Three things still need your call, all flagged inline: **(A)** this file's
 > location (root, next to `PROCESS.md`/`STRUCTURE.md`, rather than `docs/` with the four
-> fill-in forms — it is inherited, not filled in per product), and **(B)** §7, the only rule
-> here with no mechanical enforcement behind it.
+> fill-in forms — it is inherited, not filled in per product; `PROCESS.md` §3 is deliberately
+> left saying only `CODE_STANDARDS.md`, so your ruling settles it), **(B)** §7, the only rule
+> here with no mechanical enforcement behind it, and **(C)** §4 — formatting is checked by
+> `npm run format` but that is not one of the five gates and not in CI, so it is unenforced.
 >
 > Delete this block once approved.
 
@@ -50,7 +52,11 @@ Enforced by `eslint.config.js`, run as `eslint . --max-warnings 0`.
 
 ## 4. Formatting — decided once, by Prettier
 
-Enforced by `.prettierrc.json`: single quotes, semicolons, 100-column width, trailing commas.
+Configured in `.prettierrc.json`: single quotes, semicolons, 100-column width, trailing commas.
+
+**(C) NEEDS APPROVAL — this rule is currently unenforced.** `npm run format` exists but is not
+one of the five gates and does not run in CI, so nothing stops unformatted code landing. Either
+add `format` to `ci.yml` and the Definition of Done, or accept that it is convention only.
 
 - Formatting is never a review topic. Run `npm run format:write`; the tool decides.
 - **Markdown is exempt** (`.prettierignore`): the governing docs are hand-authored and
